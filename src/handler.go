@@ -31,18 +31,24 @@ func (h *Handler) WebSocketHandler(c echo.Context) error {
 		fmt.Errorf("WriteJSONErr : ", err)
 		return err
 	}
+
+	ss, err := NewSpreadsheetService()
+	if err != nil {
+		return err
+	}
+	lc := NewLoopController(ss)
 	for {
 		_, rawMsg, err := conn.ReadMessage()
 		if err != nil {
 			return err
 		}
-		//fmt.Println("raw : ", rawMsg)
 		wsMsg := &BinanceResponseBody{}
 		err = json.Unmarshal(rawMsg, &wsMsg)
 		if err != nil {
 			fmt.Println("CastErr : ", err)
 			break
 		}
+		lc.GoogleSheetController(wsMsg)
 		fmt.Println(*wsMsg)
 	}
 	return nil
